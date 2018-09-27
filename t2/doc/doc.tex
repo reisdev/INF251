@@ -1,0 +1,73 @@
+\documentclass[tikz,12pt]{article}
+\usepackage{karnaugh-map}
+
+\begin{document}
+
+\begin{center}
+
+\author{Matheus dos Reis <matheusdrdj@gmail.com>}
+
+\begin{center}
+    \begin{figure}
+        \centering
+        \includegraphics[scale=0.2]{./doc/logoufv.png}
+    \end{figure}
+    \centering
+    \vfill
+    \fontsize{32pt}{1.5} 
+    \selectfont Trabalho 2
+    \paragraph{}
+    \selectfont INF 251
+    \vfill
+    \fontsize{14pt}{1.5}
+    \selectfont MATHEUS DOS REIS DE JESUS
+    \paragraph{}
+    \selectfont ES89369
+    \paragraph{}
+    \selectfont VIÇOSA - MG
+\end{center}
+
+
+\newpage
+
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (30.8,-13) circle (3);
+\draw (30.8,-13) node {$q0$};
+\draw [black] (53.5,-31.7) circle (3);
+\draw (53.5,-31.7) node {$q5$};
+\draw [black] (30.8,-31.1) circle (3);
+\draw (30.8,-31.1) node {$q3$};
+\draw [black] (30.8,-48.6) circle (3);
+\draw (30.8,-48.6) node {$q2$};
+\draw [black] (9.7,-31.1) circle (3);
+\draw (9.7,-31.1) node {$q4$};
+\draw [black] (30.8,-16) -- (30.8,-28.1);
+\fill [black] (30.8,-28.1) -- (31.3,-27.3) -- (30.3,-27.3);
+\draw (30.3,-22.05) node [left] {$0\mbox{ }|\mbox{ }1$};
+\draw [black] (33.8,-31.18) -- (50.5,-31.62);
+\fill [black] (50.5,-31.62) -- (49.71,-31.1) -- (49.69,-32.1);
+\draw (42.14,-31.93) node [below] {$1$};
+\draw [black] (51.09,-33.49) -- (33.21,-46.81);
+\fill [black] (33.21,-46.81) -- (34.15,-46.73) -- (33.55,-45.93);
+\draw (39.95,-39.65) node [above] {$0\mbox{ }|\mbox{ }1$};
+\draw [black] (30.8,-34.1) -- (30.8,-45.6);
+\fill [black] (30.8,-45.6) -- (31.3,-44.8) -- (30.3,-44.8);
+\draw (30.3,-39.85) node [left] {$0$};
+\draw [black] (28.49,-46.68) -- (12.01,-33.02);
+\fill [black] (12.01,-33.02) -- (12.31,-33.91) -- (12.94,-33.14);
+\draw (22.46,-39.36) node [above] {$0\mbox{ }|\mbox{ }1$};
+\draw [black] (11.98,-29.15) -- (28.52,-14.95);
+\fill [black] (28.52,-14.95) -- (27.59,-15.09) -- (28.24,-15.85);
+\draw (22.46,-22.54) node [below] {$0\mbox{ }|\mbox{ }1$};
+\end{tikzpicture}
+\end{center}
+
+\begin{karnaugh-map}[4][4]
+    \manualterms{1,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0}
+    \implicant{2}{10}
+    \implicant{1}{9}
+    \implicant{0}{1}
+\end{karnaugh-map}
+\end{document}
+    
