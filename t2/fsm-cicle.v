@@ -10,48 +10,47 @@ end
 endmodule //End 
 
 // ----   FSM alto nível com Case
-module statem(clk, reset,a, s);
+module statem(clk, reset,a, saida);
 input clk, reset,a;
-output [2:0] s;
+output [2:0] saida;
 reg [2:0] state;  // 3 bits de estado
-parameter zero=3'b000,two=3'b001,three=3'b011,four=3'b100,five=3'b101,six = 3'b110;
+parameter zero = 3'b000, two=3'b010,three=3'b011,four=3'b100,five=3'b101,six = 3'b110;
 
-assign s = (state == zero)? 3'd0:
-           (state == two)? 3'd2:
-           (state == three)? 3'd3:
-           (state == four) ? 3'd4 : 3'd5;   
+assign saida = (state == zero) ? 3'd2 :
+           (state == two)? 3'd6:
+           (state == three)? 3'd5:
+           (state == four) ? 3'd4 :
+           (state == five) ? 3'd5 : 3'd6;   
 
 always @(posedge clk or negedge reset)
      begin
           if (reset==0)
-               state = zero; // arbitrario neste exemplo, nao especificado...
+               state = zero;
           else
                case (state)
-                    zero: state = zero;
-                    two: 
-                      state = five;
-                    three:
-                      state = six;
-                    four:
-                      state = two;
+                    zero:  state = two;
+                    two:   state = five;
+                    three: state = six;
+                    four:  state = two;
                     five: 
                       if(a == 1) state = three;
                       else state = six;
-                    six:
-                      state = four;
+                    six:   state = four;
                endcase
      end
 endmodule
-// FSM com portas logicas
-// programar ainda....
+
+// FSM com portas logicas , total de 22 operadores
 module statePorta(input clk, input res, input a, output [2:0] s);
 wire [2:0] e;
 wire [2:0] p;
 
 assign s = e;
-assign p[2] = e[1] & e[0] & ~a;
-assign p[1] = (~e[2] & ~e[1] & ~a) | (e[1] & ~e[0] & ~a) | (e[2] & ~a);
-assign p[0] = (e[2] & e[0] | e[1] & ~e[0]) | (e[2] & a);
+assign p[2] = (e[1] & e[0] ^ a); // 3 operadores
+assign p[1] = (~e[2] & ~e[1] & ~a) | (e[1] & ~e[0] & ~a) | (e[2] & ~a); // 13 operadores
+assign p[0] = (e[2] & e[0] | e[1] & ~e[0]) | (e[2] & a); // 6 operadores
+
+// 22 operadores lógicos
 
 ff  e0(p[0],clk,res,e[0]);
 ff  e1(p[1],clk,res,e[1]);
@@ -64,14 +63,14 @@ reg [5:0] StateMachine [0:15]; // 16 linhas de memória, com 6 bits de largura
 
 initial
 begin  // Codificar as linhas da memória
-StateMachine[0] = 6'd0;  StateMachine[1] = 6'd17;
+StateMachine[0] = 6'd8;  StateMachine[1] = 6'd17;
 StateMachine[2] = 6'd29;  StateMachine[3] =  6'd37;
-StateMachine[4] =  6'd12;  StateMachine[5] = 6'd0;
-StateMachine[6] = 6'd0;  StateMachine[7] = 6'd0;
-StateMachine[8] = 6'd0;  StateMachine[9] = 6'd0; 
+StateMachine[4] =  6'd12;  StateMachine[5] = 6'd8;
+StateMachine[6] = 6'd8;  StateMachine[7] = 6'd8;
+StateMachine[8] = 6'd8;  StateMachine[9] = 6'd8; 
 StateMachine[10] = 6'd45; StateMachine[11] = 6'd14;
 StateMachine[12] = 6'd20; StateMachine[13] = 6'd29;
-StateMachine[14] = 6'd0; StateMachine[15] = 6'd0;
+StateMachine[14] = 6'd8; StateMachine[15] = 6'd8;
 end
 
 wire [3:0] address; // 16 linhas , 4 bits de endereco
@@ -110,7 +109,7 @@ initial  begin
 
   initial 
     begin
-     $monitor($time," c %b res %b a %b s %d s1 %d s2 %d",c,res,a,s,s1,s2);
+     $monitor($time," c %b res %b a %b FSM %d Portas %d Mem %d",c,res,a,s,s1,s2);
         #1 res=0; a=0;
         #1 res=1;
         #8 a=1;
