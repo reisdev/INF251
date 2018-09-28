@@ -1,5 +1,6 @@
 \documentclass[tikz,12pt]{article}
 \usepackage{karnaugh-map}
+\graphicspath{./}
 
 \begin{document}
 
@@ -33,13 +34,13 @@
 \begin{tikzpicture}[scale=0.2]
 \tikzstyle{every node}+=[inner sep=0pt]
 \draw [black] (30.8,-13) circle (3);
-\draw (30.8,-13) node {$q0$};
+\draw (30.8,-13) node {$q2$};
 \draw [black] (53.5,-31.7) circle (3);
-\draw (53.5,-31.7) node {$q5$};
+\draw (53.5,-31.7) node {$q3$};
 \draw [black] (30.8,-31.1) circle (3);
-\draw (30.8,-31.1) node {$q3$};
+\draw (30.8,-31.1) node {$q5$};
 \draw [black] (30.8,-48.6) circle (3);
-\draw (30.8,-48.6) node {$q2$};
+\draw (30.8,-48.6) node {$q6$};
 \draw [black] (9.7,-31.1) circle (3);
 \draw (9.7,-31.1) node {$q4$};
 \draw [black] (30.8,-16) -- (30.8,-28.1);
@@ -63,11 +64,38 @@
 \end{tikzpicture}
 \end{center}
 
+\newpage
+
+Abaixo, os mapas de karnaugh para as equações do próximo estado
+
+\paragraph{}
+
 \begin{karnaugh-map}[4][4]
-    \manualterms{1,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0}
-    \implicant{2}{10}
-    \implicant{1}{9}
+    \manualterms{X,0,0,1,0,X,X,X,X,X,1,0,0,0,X,X}
+    \implicant{14}{10}
+    \implicant{3}{7}
+\end{karnaugh-map}
+
+\begin{karnaugh-map}[4][4]
+    \manualterms{X,1,1,0,0,X,X,X,X,X,0,0,1,1,X,X}
+    \implicant{12}{14}
+    \implicant{2}{6}
     \implicant{0}{1}
 \end{karnaugh-map}
+
+\begin{karnaugh-map}[4][4]
+    \manualterms{X,0,1,0,1,X,X,X,X,X,1,1,0,1,X,X}
+    \implicant{8}{10}
+    \implicant{5}{15}
+    \implicant{2}{10}
+\end{karnaugh-map}
+
+\paragraph{}
+
+Abaixo, as equações para cada bit do próximo estado:
+
+\[ p[2] = E_{1}E_{0}\bar{A} \]
+\[ p[1] = \bar{E_{2}}\bar{E_{1}}\bar{A} + E_{1}\bar{E_{0}}\bar{A} + E_{2}\bar{A}\]
+\[ p[0] = E_{2}E_{0} + E_{1}\bar{E_{0}} + E_{2}A    \]
 \end{document}
     
