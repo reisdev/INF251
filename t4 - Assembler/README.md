@@ -1,7 +1,7 @@
 # Trabalho de Assembler
 
-Aluno: Matheus dos Reis de Jesus
-Matrícula: 89369
+- Aluno: Matheus dos Reis de Jesus
+- Matrícula: 89369
 
 Os códigos estão todos comentados com instruções para os endereços do `$gp` para cada valor.
 
