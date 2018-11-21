@@ -71,6 +71,7 @@ module regm(
 		else
 			_data1 = mem[read1][31:0];
 			$display("Register 1: r%d = %x",read1,_data1);
+			$display();
 	end
 
 	always @(*) begin
@@ -81,6 +82,7 @@ module regm(
 		else
 			_data2 = mem[read2][31:0];
 			$display("Register 2: r%d = %x",read2,_data2);
+			$display();
 	end
 
 	assign data1 = _data1;
