@@ -33,10 +33,9 @@ module alu(
 
 	// set if less than, 2s compliment 32-bit numbers
 	assign slt = oflow_sub ? ~(a[31]) : a[31];
-
 	always @(*) begin
 		case (ctl)
-			4'd2:  out <= add_ab;				/* add */
+			4'd2:  out <= add_ab; 		        /* add */ 
 			4'd0:  out <= a & b;				/* and */
 			4'd12: out <= ~(a | b);				/* nor */
 			4'd1:  out <= a | b;				/* or */

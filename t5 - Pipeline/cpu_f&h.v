@@ -31,13 +31,14 @@ module cpu(
 		input wire clk);
 
 	parameter NMEM = 20;  // number in instruction memory
-	parameter IM_DATA = "im_data1.txt";
+	parameter IM_DATA = "im_data_ex1.txt";
 
 	wire regwrite_s5;
 	wire [4:0] wrreg_s5;
 	wire [31:0]	wrdata_s5;
 	reg stall_s1_s2;
-
+	assign cicle = 32'b0;
+	assign next = 32'b0;
 	// {{{ diagnostic outputs
 	initial begin
 		if (`DEBUG_CPU_STAGES) begin
@@ -59,7 +60,6 @@ module cpu(
 		end
 	end
 	// }}}
-
 	// {{{ flush control
 	reg flush_s1, flush_s2, flush_s3;
 	always @(*) begin
@@ -273,7 +273,7 @@ module cpu(
 	// pass data2 to stage 4
 	wire [31:0] data2_s4;
 	reg [31:0] fw_data2_s3;
-	always @(*)
+    always @(*)
 	case (forward_b)
 			2'd1: fw_data2_s3 = alurslt_s4;
 			2'd2: fw_data2_s3 = wrdata_s5;
@@ -359,7 +359,7 @@ module cpu(
 
 	// stage 3 (MEM) -> stage 2 (EX)
 	// stage 4 (WB) -> stage 2 (EX)
-
+    
 	reg [1:0] forward_a;
 	reg [1:0] forward_b;
 	always @(*) begin
@@ -383,6 +383,8 @@ module cpu(
 			forward_b <= 2'd0;  // no forwarding
 	end
 	// }}}
+
+	// hazard
 
 	// {{{ load use data hazard detection, signal stall
 
