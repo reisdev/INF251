@@ -70,8 +70,8 @@ module regm(
 			_data1 = wrdata;
 		else
 			_data1 = mem[read1][31:0];
-			$display("Register 1: r%d = %x",read1,_data1);
-			$display();
+			/* $display("Register 1: r%d = %x",read1,_data1);
+			$display(); */
 	end
 
 	always @(*) begin
@@ -81,8 +81,8 @@ module regm(
 			_data2 = wrdata;
 		else
 			_data2 = mem[read2][31:0];
-			$display("Register 2: r%d = %x",read2,_data2);
-			$display();
+			/* $display("Register 2: r%d = %x",read2,_data2);
+			$display(); */
 	end
 
 	assign data1 = _data1;
@@ -91,11 +91,11 @@ module regm(
 	always @(posedge clk) begin
 		if (regwrite && wrreg != 5'd0) begin
 			// write a non $zero register
-			$display();
+			/* $display();
 			$display("------ Writing on register --------");
 			$display("%d : %x", wrreg,wrdata);
 			$display("-----------------------------------");
-			$display();
+			$display(); */
 			mem[wrreg] <= wrdata;
 		end
 	end

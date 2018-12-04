@@ -27,21 +27,23 @@
 `define DEBUG_CPU_STAGES 1
 `endif
 
-module cpu(input wire clk);
+module cpu(
+		input wire clk);
 
-	parameter NMEM = 20;  // number in instruction memory
-	parameter IM_DATA = "im_data_ex2.txt";
+	parameter NMEM = 25;  // number in instruction memory
+	parameter IM_DATA = "im_data_4a.txt";
 
 	wire regwrite_s5;
 	wire [4:0] wrreg_s5;
 	wire [31:0]	wrdata_s5;
 	reg stall_s1_s2;
-
+	assign cicle = 32'b0;
+	assign next = 32'b0;
 	// {{{ diagnostic outputs
 	initial begin
 		if (`DEBUG_CPU_STAGES) begin
 			$display("if_pc,    if_instr, id_regrs, id_regrt, ex_alua,  ex_alub,  ex_aluctl, mem_memdata, mem_memread, mem_memwrite, wb_regdata, wb_regwrite");
-			$monitor("%x, %x, %d, %d, %x, %x, %x,         %x,    %x,           %x,            %x,   %x",
+			$monitor("%x, %x, %x, %x, %x, %x, %x,         %x,    %x,           %x,            %x,   %x",
 					pc,				/* if_pc */
 					inst,			/* if_instr */
 					data1,			/* id_regrs */
@@ -53,14 +55,12 @@ module cpu(input wire clk);
 					memread_s4,		/* mem_memread */
 					memwrite_s4,	/* mem_memwrite */
 					wrdata_s5,		/* wb_regdata */
-					regwrite_s5		/* wb_regwrite */,
+					regwrite_s5		/* wb_regwrite */
 				);
 		end
 	end
 	// }}}
-
 	// {{{ flush control
-	/*
 	reg flush_s1, flush_s2, flush_s3;
 	always @(*) begin
 		flush_s1 <= 1'b0;
@@ -73,7 +73,7 @@ module cpu(input wire clk);
 		end
 	end
 	// }}}
-	*/
+
 	// {{{ stage 1, IF (fetch)
 
 	reg  [31:0] pc;
@@ -83,16 +83,18 @@ module cpu(input wire clk);
 
 	wire [31:0] pc4;  // PC + 4
 	assign pc4 = pc + 4;
-
+	wire c;
+	assign c = (data1 == data2) & branch_eq_s2;
+	
 	always @(posedge clk) begin
-		if (stall_s1_s2) 
+		if (c) 
+			pc <= baddr_s2;
+		else if(stall_s1_s2) 
 			pc <= pc;
-		else if (pcsrc == 1'b1) begin
+		else if (pcsrc == 1'b1)
 			pc <= baddr_s4;
-		end
-		else if (jump_s4 == 1'b1) begin
+		else if (jump_s4 == 1'b1)
 			pc <= jaddr_s4;
-		end
 		else
 			pc <= pc4;
 	end
@@ -253,7 +255,12 @@ module cpu(input wire clk);
 	// ALU
 	wire [31:0]	alurslt;
 	reg [31:0] fw_data1_s3;
-
+	always @(*)
+	case (forward_a)
+			2'd1: fw_data1_s3 = alurslt_s4;
+			2'd2: fw_data1_s3 = wrdata_s5;
+		 default: fw_data1_s3 = data1_s3;
+	endcase
 	wire zero_s3;
 	alu alu1(.ctl(aluctl), .a(fw_data1_s3), .b(alusrc_data2), .out(alurslt),
 									.zero(zero_s3));
@@ -270,6 +277,12 @@ module cpu(input wire clk);
 	// pass data2 to stage 4
 	wire [31:0] data2_s4;
 	reg [31:0] fw_data2_s3;
+    always @(*)
+	case (forward_b)
+			2'd1: fw_data2_s3 = alurslt_s4;
+			2'd2: fw_data2_s3 = wrdata_s5;
+		 default: fw_data2_s3 = data2_s3;
+	endcase
 	regr #(.N(32)) reg_data2_s3(.clk(clk), .clear(flush_s3), .hold(1'b0),
 				.in(fw_data2_s3), .out(data2_s4));
 
@@ -344,6 +357,62 @@ module cpu(input wire clk);
 
 	assign wrdata_s5 = (memtoreg_s5 == 1'b1) ? rdata_s5 : alurslt_s5;
 
+	// }}}
+
+	// {{{ forwarding
+
+	// stage 3 (MEM) -> stage 2 (EX)
+	// stage 4 (WB) -> stage 2 (EX)
+    
+	reg [1:0] forward_a;
+	reg [1:0] forward_b;
+	always @(*) begin
+		// If the previous instruction (stage 4) would write,
+		// and it is a value we want to read (stage 3), forward it.
+
+		// data1 input to ALU
+		if ((regwrite_s4 == 1'b1) && (wrreg_s4 == rs_s3)) begin
+			forward_a <= 2'd1;  // stage 4
+		end else if ((regwrite_s5 == 1'b1) && (wrreg_s5 == rs_s3)) begin
+			forward_a <= 2'd2;  // stage 5
+		end else
+			forward_a <= 2'd0;  // no forwarding
+
+		// data2 input to ALU
+		if ((regwrite_s4 == 1'b1) & (wrreg_s4 == rt_s3)) begin
+			forward_b <= 2'd1;  // stage 5
+		end else if ((regwrite_s5 == 1'b1) && (wrreg_s5 == rt_s3)) begin
+			forward_b <= 2'd2;  // stage 5
+		end else
+			forward_b <= 2'd0;  // no forwarding
+	end
+	// }}}
+
+	// hazard
+
+	// {{{ load use data hazard detection, signal stall
+
+	/* If an operation in stage 4 (MEM) loads from memory (e.g. lw)
+	 * and the operation in stage 3 (EX) depends on this value,
+	 * a stall must be performed.  The memory read cannot 
+	 * be forwarded because memory access is too slow.  It can
+	 * be forwarded from stage 5 (WB) after a stall.
+	 *
+	 *   lw $1, 16($10)  ; I-type, rt_s3 = $1, memread_s3 = 1
+	 *   sw $1, 32($12)  ; I-type, rt_s2 = $1, memread_s2 = 0
+	 *
+	 *   lw $1, 16($3)  ; I-type, rt_s3 = $1, memread_s3 = 1
+	 *   sw $2, 32($1)  ; I-type, rt_s2 = $2, rs_s2 = $1, memread_s2 = 0
+	 *
+	 *   lw  $1, 16($3)  ; I-type, rt_s3 = $1, memread_s3 = 1
+	 *   add $2, $1, $1  ; R-type, rs_s2 = $1, rt_s2 = $1, memread_s2 = 0
+	 */
+	always @(*) begin
+		if (memread_s3 == 1'b1 && ((rt == rt_s3) || (rs == rt_s3)) ) begin
+			stall_s1_s2 <= 1'b1;  // perform a stall
+		end else
+			stall_s1_s2 <= 1'b0;  // no stall
+	end
 	// }}}
 
 endmodule
