@@ -32,7 +32,7 @@ module cpu(
 		input wire clk);
 
 	parameter NMEM = 25;  // number in instruction memory
-	parameter IM_DATA = "im_data_4a.txt";
+	parameter IM_DATA = "im_data_4.txt";
 
 	wire regwrite_s5;
 	wire [4:0] wrreg_s5;

@@ -28,11 +28,33 @@ begin
 end
 endmodule
 
-// -------------------------------
+
+/* ----------------- module cicle 
+
+module cicle(out);
+
+output out;
+reg out;
+
+initial begin
+    out <= 32'b0;
+end
+
+always @(*)
+begin
+    out <= out + 32'b1;
+end
+
+endmodule
+
+*/
+
+// --------------------------------
 
 module top;
 
 clkGen CLK(clk);
+// cicle CLC(cicle);
 cpu CPU(clk);
 initial begin
     $dumpfile("test.vcd");

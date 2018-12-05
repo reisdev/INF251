@@ -23,30 +23,29 @@
 `include "alu_control.v"
 `include "dm.v"
 `include "fw_s2.v"
-`include "hz_beq.v"
+`include "hazard_beq.v"
 
 `ifndef DEBUG_CPU_STAGES
 `define DEBUG_CPU_STAGES 1
 `endif
 
 module cpu(
-		input wire clk);
+		input wire clk
+		//input cicle
+	);
 
 	parameter NMEM = 25;  // number in instruction memory
 	parameter IM_DATA = "im_data_4.txt";
-
 	wire regwrite_s5;
 	wire [4:0] wrreg_s5;
 	wire [31:0]	wrdata_s5;
 	reg stall_s1_s2;
-	wire stall_haz;
-	assign cicle = 32'b0;
-	assign next = 32'b0;
+	wire stall_haz; 
 	// {{{ diagnostic outputs
 	initial begin
 		if (`DEBUG_CPU_STAGES) begin
-			$display("if_pc,    if_instr, id_regrs, id_regrt, ex_alua,  ex_alub,  ex_aluctl, mem_memdata, mem_memread, mem_memwrite, wb_regdata, wb_regwrite");
-			$monitor("%x, %x, %x, %x, %x, %x, %x,         %x,    %x,           %x,            %x,   %x",
+			$display("if_pc,    if_instr, id_regrs, id_regrt, ex_alua,  ex_alub,  ex_aluctl, mem_memdata, mem_memread, mem_memwrite, wb_regdata, wb_regwrite, cicle");
+			$monitor("%x, %x, %x, %x, %x, %x, %x,         %x,    %x,           %x,            %x,   %x,     %d",
 					pc,				/* if_pc */
 					inst,			/* if_instr */
 					data1,			/* id_regrs */
@@ -58,7 +57,8 @@ module cpu(
 					memread_s4,		/* mem_memread */
 					memwrite_s4,	/* mem_memwrite */
 					wrdata_s5,		/* wb_regdata */
-					regwrite_s5		/* wb_regwrite */
+					regwrite_s5,		/* wb_regwrite */
+					//cicle
 				);
 		end
 	end
@@ -241,8 +241,8 @@ module cpu(
 
     // {{{ hazard for the beq control
 		
-	hazard beq_control(.rs_s2(rs), .rt_s2(rt), .reg_s3(rd_s3), 
-				.rgwrite_s3(regwrite_s3), .branch(branch_eq_s2),
+	hazard beq_control(.rs_id(rs), .rt_id(rt), .reg_id(rd_s3), 
+				.condition(regwrite_s3), .branch(branch_eq_s2),
 				.stall_s2(stall_haz), .hold_haz(hold_s2));
 
     // }}}
@@ -329,6 +329,15 @@ module cpu(
 	regr #(.N(32)) reg_jaddr_s4(.clk(clk), .clear(flush_s3), .hold(1'b0),
 				.in(jaddr_s3), .out(jaddr_s4));
 	// }}}
+
+
+	// {{{ hazard for the beq and lw control
+		
+	hazard beqlw_control(.rs_id(rs), .rt_id(rt), .reg_id(wrreg_s4), 
+				.condition(memread_s4), .branch(branch_eq_s2),
+				.stall_s2(stall_haz), .hold_haz(hold_s2));
+
+    // }}}
 
 	// {{{ stage 4, MEM (memory)
 

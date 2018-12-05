@@ -11,17 +11,17 @@
 `define _hazard
 
 module hazard(
-    input wire [4:0] rs_s2,
-    input wire [4:0] rt_s2,
-    input wire [4:0] reg_s3,
-    input wire rgwrite_s3,
+    input wire [4:0] rs_id,
+    input wire [4:0] rt_id,
+    input wire [4:0] reg_id,
+    input wire condition,
     input wire branch,
     output reg stall_s2, hold_haz
 );
 
     always @(*) begin
-        if(branch == 1'b1)
-            if(rs_s2 == reg_s3 || rt_s2 == reg_s3) begin
+        if(branch == 1'b1 && condition == 1'b1)
+            if(rs_id == reg_id || rt_id == reg_id) begin
                 hold_haz <= 1'b1;
                 stall_s2 <= 1'b1;
             end
