@@ -1,7 +1,9 @@
 /*
     forwarding_s2. forwarding for stage for to stage 2
-    
 
+    Author(s): Matheus dos Reis <matheusdrdj@gmail.com>
+               Lucas Matos <>
+    
 */
 
 `ifndef _forwarding
@@ -14,7 +16,7 @@ module forwarding (
     input wire branch,
     input wire regwr,
     output reg mux_data1,mux_data2
-    );
+);
 
     always @(*) begin
         if(regwr & branch) begin
